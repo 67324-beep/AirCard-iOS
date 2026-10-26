@@ -1,0 +1,36 @@
+name: Build IPA
+
+on:
+  workflow_dispatch:        # bouton "Run workflow" dans l'onglet Actions
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Choisir la dernière version de Xcode disponible
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Installer XcodeGen
+        run: brew install xcodegen
+
+      - name: Compiler l'IPA
+        run: |
+          chmod +x build-ipa.sh
+          ./build-ipa.sh
+
+      - name: Vérifier que l'IPA existe
+        run: ls -lh build/AirCard-iOS.ipa
+
+      - name: Publier l'IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: AirCard-iOS-ipa
+          path: build/AirCard-iOS.ipa
+          if-no-files-found: error
